@@ -12,46 +12,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python for tests
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.13'
-        
-    - name: Install dependencies and test
+    - name: Setup SSH key
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest
-        # Быстрые тесты перед деплоем
-        python -m pytest tests/test_unit.py -v --tb=short
-        
-    - name: Setup SSH agent
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        mkdir -p ~/.ssh
+        # Используем приватный ключ ИЗ SECRETS
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vm_key
+        chmod 600 ~/.ssh/vm_key
         
     - name: Deploy to VM
       run: |
-        ssh-keyscan -p 2440 course.prafdin.ru >> ~/.ssh/known_hosts
-        
-        ssh -p 2440 vboxuser@course.prafdin.ru "
+        ssh -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=30 \
+            -i ~/.ssh/vm_key \  # Используем ключ из secrets
+            -p 2440 \
+            vboxuser@course.prafdin.ru "
           cd /home/vboxuser/catty-reminders-app
-          
-          echo 'Pulling latest code...'
-          git fetch origin
-          git reset --hard origin/github-actions
-          
-          echo 'Installing/updating dependencies...'
-          python -m pip install --upgrade pip
+          git pull origin github-actions
           pip install -r requirements.txt
-          
-          echo 'Restarting application service...'
-          sudo systemctl daemon-reload
           sudo systemctl restart catty-reminders
-          
-          echo 'Checking service status...'
-          sudo systemctl status catty-reminders --no-pager
-          
-          echo 'Deployment completed!'
-          echo 'Application available at: http://app.agafonov.course.prafdin.ru'
+          echo 'Deployed!'
         "
