@@ -23,29 +23,51 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-asyncio httpx
+        pip install pytest pytest-asyncio httpx playwright
         
-    - name: Run unit tests
+    - name: Install Playwright browsers
       run: |
-        python -m pytest tests/test_unit.py -v
-        
-    - name: Run API tests
-      run: |
-        python -m pytest tests/test_api.py -v
-        
-    - name: Run UI tests
-      run: |
-        python -m pytest tests/test_ui.py -v
-        
-    - name: Run all tests with coverage
-      run: |
-        python -m pytest tests/ -v --tb=short
+        python -m playwright install
         
     - name: Verify imports
       run: |
         python -c "from app.main import app; print('FastAPI app imported successfully')"
         python -c "from app.routers import reminders, login, api, root; print('All routers imported successfully')"
         python -c "from app.utils import auth, storage, exceptions; print('All utils imported successfully')"
+        
+    - name: Run unit tests (без запуска приложения)
+      run: |
+        python -m pytest tests/test_unit.py -v
+        
+    - name: Run API tests (с запуском приложения)
+      run: |
+        
+        uvicorn app.main:app --host 0.0.0.0 --port 8181 &
+        APP_PID=$!
+        
+        
+        sleep 5
+        
+        
+        python -m pytest tests/test_api.py -v
+        
+        
+        kill $APP_PID 2>/dev/null || true
+        
+    - name: Run UI tests (с запуском приложения)
+      run: |
+        
+        uvicorn app.main:app --host 0.0.0.0 --port 8181 &
+        APP_PID=$!
+        
+        
+        sleep 5
+        
+        
+        python -m pytest tests/test_ui.py -v
+        
+        
+        kill $APP_PID 2>/dev/null || true
         
     - name: Check code quality
       run: |
@@ -69,14 +91,3 @@ jobs:
         [ -f "config.json" ] && echo "✓ config.json found" || echo "✗ config.json missing"
         [ -f "inputs.json" ] && echo "✓ inputs.json found" || echo "✗ inputs.json missing"
         [ -f "requirements.txt" ] && echo "✓ requirements.txt found" || echo "✗ requirements.txt missing"
-        
-    - name: Test application startup
-      run: |
-        timeout 10s bash -c '
-          uvicorn app.main:app --host 0.0.0.0 --port 8181 &
-          PID=$!
-          sleep 3
-          curl -f http://localhost:8181/ > /dev/null 2>&1 && echo "✓ Application started successfully" || echo "✗ Application failed to start"
-          kill $PID 2>/dev/null
-          wait $PID 2>/dev/null
-        ' || echo "Startup test completed"
