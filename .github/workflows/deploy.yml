@@ -18,22 +18,21 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vm_key
         chmod 600 ~/.ssh/vm_key
         
-    - name: Test connection
-      run: |
-        echo "Testing connection to course.prafdin.ru:2440..."
-        timeout 5 telnet course.prafdin.ru 2440 || echo "Telnet failed"
-        echo "Testing SSH connection..."
-        ssh -o StrictHostKeyChecking=no \
-            -o ConnectTimeout=5 \
-            -i ~/.ssh/vm_key \
-            -p 2440 \
-            vboxuser@course.prafdin.ru "echo 'Test successful'" || echo "SSH test failed"
-            
     - name: Deploy to VM
       run: |
+        echo "🚀 Starting deployment..."
         ssh -o StrictHostKeyChecking=no \
-            -o ConnectTimeout=10 \
-            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
             -i ~/.ssh/vm_key \
             -p 2440 \
-            vboxuser@course.prafdin.ru "cd /home/vboxuser/catty-reminders-app && git pull origin github-actions && pip install -r requirements.txt && sudo systemctl restart catty-reminders && echo 'Deployed!'"
+            vboxuser@course.prafdin.ru "
+          cd /home/vboxuser/catty-reminders-app
+          echo 'Pulling latest code...'
+          git pull origin github-actions
+          echo 'Installing dependencies...'
+          pip install -r requirements.txt
+          echo 'Restarting service...'
+          sudo systemctl restart catty-reminders
+          echo '✅ Deployment completed!'
+          echo '🌐 Application: http://app.agafonov.course.prafdin.ru'
+        "
