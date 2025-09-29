@@ -15,20 +15,22 @@ jobs:
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
-        # Используем приватный ключ ИЗ SECRETS
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vm_key
         chmod 600 ~/.ssh/vm_key
         
     - name: Deploy to VM
       run: |
+        
+        DEPLOY_SCRIPT="
+        cd /home/vboxuser/catty-reminders-app
+        git pull origin github-actions
+        pip install -r requirements.txt
+        sudo systemctl restart catty-reminders
+        echo 'Deployment completed successfully!'
+        echo 'Application: http://app.agafonov.course.prafdin.ru'"
+        
         ssh -o StrictHostKeyChecking=no \
             -o ConnectTimeout=30 \
-            -i ~/.ssh/vm_key \  # Используем ключ из secrets
+            -i ~/.ssh/vm_key \
             -p 2440 \
-            vboxuser@course.prafdin.ru "
-          cd /home/vboxuser/catty-reminders-app
-          git pull origin github-actions
-          pip install -r requirements.txt
-          sudo systemctl restart catty-reminders
-          echo 'Deployed!'
-        "
+            vboxuser@course.prafdin.ru "$DEPLOY_SCRIPT"
