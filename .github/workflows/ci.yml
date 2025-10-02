@@ -35,11 +35,11 @@ jobs:
         python -c "from app.routers import reminders, login, api, root; print('All routers imported successfully')"
         python -c "from app.utils import auth, storage, exceptions; print('All utils imported successfully')"
         
-    - name: Run unit tests (без запуска приложения)
+    - name: 
       run: |
         python -m pytest tests/test_unit.py -v
         
-    - name: Run API tests (с запуском приложения)
+    - name: Run API tests 
       run: |
         
         uvicorn app.main:app --host 0.0.0.0 --port 8181 &
@@ -54,7 +54,7 @@ jobs:
         
         kill $APP_PID 2>/dev/null || true
         
-    - name: Run UI tests (с запуском приложения)
+    - name: Run UI tests 
       run: |
         
         uvicorn app.main:app --host 0.0.0.0 --port 8181 &
@@ -69,25 +69,3 @@ jobs:
         
         kill $APP_PID 2>/dev/null || true
         
-    - name: Check code quality
-      run: |
-        pip install flake8 black
-        echo "=== Flake8 check ==="
-        flake8 app/ tests/ --max-line-length=120 --extend-ignore=E203,W503 || true
-        echo "=== Black format check ==="
-        black --check app/ tests/ --line-length 120 || true
-        
-    - name: Verify static files
-      run: |
-        echo "=== Checking static files ==="
-        [ -f "static/js/htmx.min.js" ] && echo "✓ htmx.js found" || echo "✗ htmx.js missing"
-        [ -d "static/css" ] && echo "✓ CSS directory exists" || echo "✗ CSS directory missing"
-        [ -d "static/img" ] && echo "✓ Images directory exists" || echo "✗ Images directory missing"
-        [ -d "templates" ] && echo "✓ Templates directory exists" || echo "✗ Templates directory missing"
-        
-    - name: Verify configuration files
-      run: |
-        echo "=== Checking config files ==="
-        [ -f "config.json" ] && echo "✓ config.json found" || echo "✗ config.json missing"
-        [ -f "inputs.json" ] && echo "✓ inputs.json found" || echo "✗ inputs.json missing"
-        [ -f "requirements.txt" ] && echo "✓ requirements.txt found" || echo "✗ requirements.txt missing"

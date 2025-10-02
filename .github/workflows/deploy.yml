@@ -1,4 +1,4 @@
-name: CD Deploy
+name: CD
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
         
     - name: Deploy to VM
       run: |
-        echo "🚀 Starting deployment..."
+        echo "Starting deployment..."
         ssh -o StrictHostKeyChecking=no \
             -o ConnectTimeout=15 \
             -i ~/.ssh/vm_key \
@@ -33,6 +33,6 @@ jobs:
           pip install -r requirements.txt
           echo 'Restarting service...'
           sudo systemctl restart catty-reminders
-          echo '✅ Deployment completed!'
-          echo '🌐 Application: http://app.agafonov.course.prafdin.ru'
+          echo 'Deployment completed!'
+          echo 'Application: http://app.agafonov.course.prafdin.ru'
         "
