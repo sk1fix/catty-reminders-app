@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [ github-actions, master ]
+    branches: [ master ]
 
 jobs:
   deploy:
