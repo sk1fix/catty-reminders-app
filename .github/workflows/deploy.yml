@@ -1,0 +1,56 @@
+name: CD
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vm_key
+        chmod 600 ~/.ssh/vm_key
+        
+    - name: Deploy Docker container to VM
+      run: |
+        echo "Starting Docker deployment..."
+        ssh -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=15 \
+            -i ~/.ssh/vm_key \
+            -p 2440 \
+            vboxuser@course.prafdin.ru "
+          echo 'Logging in to GHCR...'
+          echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          echo 'Pulling latest Docker image...'
+          docker pull ghcr.io/sk1fix/catty-reminders:latest
+          
+          echo 'Tagging image for local use...'
+          docker tag ghcr.io/sk1fix/catty-reminders:latest catty-reminders:latest
+          
+          echo 'Stopping and removing old container...'
+          docker stop reminders-container || true
+          docker rm reminders-container || true
+          
+          echo 'Starting new container...'
+          docker run -d \
+            --name reminders-container \
+            --restart unless-stopped \
+            -p 8181:8181 \
+            ghcr.io/sk1fix/catty-reminders:latest
+          
+          echo 'Cleaning up old images...'
+          docker image prune -f
+          
+          echo 'Docker deployment completed!'
+          echo 'Container status:'
+          docker ps --filter 'name=reminders-container'
+          echo 'Application: http://app.agafonov.course.prafdin.ru'
+        "
