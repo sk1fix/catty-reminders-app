@@ -32,9 +32,6 @@ jobs:
           echo 'Pulling latest Docker image...'
           docker pull ghcr.io/sk1fix/catty-reminders:latest
           
-          echo 'Tagging image for local use...'
-          docker tag ghcr.io/sk1fix/catty-reminders:latest catty-reminders:latest
-          
           echo 'Stopping and removing old container...'
           docker stop reminders-container || true
           docker rm reminders-container || true
