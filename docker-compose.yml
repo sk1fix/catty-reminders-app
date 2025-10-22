@@ -1,5 +1,3 @@
-  version: '3.8'
-
 services:
   app:
     build: ghcr.io/sk1fix/catty-reminders:latest
