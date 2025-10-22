@@ -1,4 +1,4 @@
-Sname: CD
+name: CD
 
 on:
   push:
