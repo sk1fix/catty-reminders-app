@@ -18,36 +18,35 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vm_key
         chmod 600 ~/.ssh/vm_key
         
-    - name: Deploy Docker container to VM
+    - name: Deploy with Docker Compose to VM
       run: |
-        echo "Starting Docker deployment..."
+        echo "Starting Docker Compose deployment..."
         ssh -o StrictHostKeyChecking=no \
             -o ConnectTimeout=15 \
             -i ~/.ssh/vm_key \
             -p 2440 \
             vboxuser@course.prafdin.ru "
+          echo 'Creating necessary directories...'
+          mkdir -p ~/catty-reminders-app
+          
+          
           echo 'Logging in to GHCR...'
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          echo 'Pulling latest Docker image...'
-          docker pull ghcr.io/sk1fix/catty-reminders:latest
+          echo 'Pulling latest images...'
+          docker compose -f ~/catty-reminders-app/docker-compose.yml pull
           
-          echo 'Stopping and removing old container...'
-          docker stop reminders-container || true
-          docker rm reminders-container || true
+          echo 'Stopping and removing old containers...'
+          docker compose -f ~/catty-reminders-app/docker-compose.yml down
           
-          echo 'Starting new container...'
-          docker run -d \
-            --name reminders-container \
-            --restart unless-stopped \
-            -p 8181:8181 \
-            ghcr.io/sk1fix/catty-reminders:latest
+          echo 'Starting new containers with Docker Compose...'
+          docker compose -f ~/catty-reminders-app/docker-compose.yml up -d
           
-          echo 'Cleaning up old images...'
+          echo 'Cleaning up...'
           docker image prune -f
           
-          echo 'Docker deployment completed!'
-          echo 'Container status:'
-          docker ps --filter 'name=reminders-container'
+          echo 'Docker Compose deployment completed!'
+          echo 'Containers status:'
+          docker compose -f ~/catty-reminders-app/docker-compose.yml ps
           echo 'Application: http://app.agafonov.course.prafdin.ru'
         "

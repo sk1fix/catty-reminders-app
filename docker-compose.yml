@@ -1,0 +1,25 @@
+  version: '3.8'
+
+services:
+  app:
+    build: ghcr.io/sk1fix/catty-reminders:latest
+    ports:
+      - "8181:8181"
+    depends_on:
+      - db
+    volumes:
+      - ./config.json:/catty-reminders-app/config.json:ro
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: mypass
+      MYSQL_DATABASE: catty_reminders
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
