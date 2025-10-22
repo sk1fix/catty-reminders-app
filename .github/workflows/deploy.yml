@@ -1,4 +1,4 @@
-name: CD
+Sname: CD
 
 on:
   push:
@@ -29,14 +29,6 @@ jobs:
           echo 'Creating necessary directories...'
           mkdir -p ~/catty-reminders-app
           
-          echo 'Copying Docker Compose files...'
-          cat > ~/catty-reminders-app/docker-compose.yml << 'EOF'
-$(cat docker-compose.yml)
-EOF
-          
-          cat > ~/catty-reminders-app/config.json << 'EOF'
-$(cat config.json)
-EOF
           
           echo 'Logging in to GHCR...'
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
