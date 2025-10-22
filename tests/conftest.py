@@ -14,7 +14,6 @@ TODO: storage state for UI and API
 
 import json
 import pytest
-from unittest.mock import Mock, patch
 
 from playwright.sync_api import Playwright
 from testlib.inputs import User
@@ -70,20 +69,3 @@ def alt_user(test_inputs):
 @pytest.fixture
 def catty_api(playwright: Playwright, base_url: str):
   return playwright.request.new_context(base_url=base_url)
-
-# --------------------------------------------------------------------------------
-# Database Mock Fixture
-# --------------------------------------------------------------------------------
-
-@pytest.fixture(autouse=True)
-def mock_database():
-    with patch('app.utils.mysql_storage.MySQLStorage') as mock_storage:
-        mock_instance = Mock()
-        
-        mock_instance.get_reminders.return_value = []
-        mock_instance.create_reminder.return_value = True
-        mock_instance.delete_reminder.return_value = True
-        mock_instance.update_reminder.return_value = True
-        
-        mock_storage.return_value = mock_instance
-        yield mock_instance
