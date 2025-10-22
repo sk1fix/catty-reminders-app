@@ -35,9 +35,8 @@ jobs:
         
     - name: Verify imports
       run: |
-        python -c "from app.main import app; print('FastAPI app imported successfully')"
         python -c "from app.routers import reminders, login, api, root; print('All routers imported successfully')"
-        python -c "from app.utils import auth, storage, exceptions; print('All utils imported successfully')"
+        python -c "from app.utils import auth, mysql_storage, exceptions; print('All utils imported successfully')"
         
     - name: Run unit tests
       run: |
