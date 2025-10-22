@@ -26,9 +26,7 @@ jobs:
             -i ~/.ssh/vm_key \
             -p 2440 \
             vboxuser@course.prafdin.ru "
-          echo 'Creating necessary directories...'
-          mkdir -p ~/catty-reminders-app
-          
+          echo 'Creating necessary directories...'          
           
           echo 'Logging in to GHCR...'
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
